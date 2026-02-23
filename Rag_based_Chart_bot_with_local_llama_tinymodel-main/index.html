@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StarZopp AI Chat</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --chat-bg: #1e1e1e;
+      --primary-color: #3b82f6;
+      --primary-hover: #2563eb;
+      --text-color: #e0e0e0;
+      --user-msg-bg: #3b82f6;
+      --bot-msg-bg: #2d2d2d;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--chat-bg);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    #header {
+      padding: 20px;
+      background: rgba(30, 30, 30, 0.95);
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+
+    #header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    #status {
+      font-size: 0.8rem;
+      color: #4ade80;
+    }
+
+    #chat-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      position: relative;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      /* Critical for preserving formatting */
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: var(--user-msg-bg);
+      color: white;
+      border-bottom-right-radius: 2px;
+    }
+
+    .bot-message {
+      align-self: flex-start;
+      background-color: var(--bot-msg-bg);
+      color: var(--text-color);
+      border-bottom-left-radius: 2px;
+      border: 1px solid #333;
+    }
+
+    .bot-name {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .error-message {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    #input-area {
+      padding: 20px;
+      background: var(--chat-bg);
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #252525;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary-color);
+    }
+
+    button {
+      padding: 0 24px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button:disabled {
+      background-color: #444;
+      cursor: not-allowed;
+    }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--bot-msg-bg);
+      border-radius: 12px;
+      width: fit-content;
+      align-self: flex-start;
+      display: none;
+      /* Hidden by default */
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #666;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--chat-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    /* Feedback Buttons */
+    .feedback-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feedback-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: #888;
+      transition: color 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feedback-btn:hover {
+      color: var(--primary-color);
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .feedback-btn:active {
+      transform: scale(0.9);
+    }
+
+    .feedback-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background-color: var(--chat-bg);
+      margin: 15% auto;
+      padding: 24px;
+      border: 1px solid #444;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      color: var(--text-color);
+    }
+
+    .modal p {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #252525;
+      color: white;
+      resize: vertical;
+      font-family: inherit;
+      box-sizing: border-box;
+      /* Fix padding issue */
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .cancel-btn {
+      background-color: transparent;
+      border: 1px solid #444;
+    }
+
+    .cancel-btn:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <div id="header">
+      <h1>StarZopp Assistant</h1>
+      <span id="status">● Online</span>
+    </div>
+
+    <div id="chat-container">
+      <!-- Welcome Message -->
+      <div class="message bot-message">
+        <span class="bot-name">StarZopp AI</span>
+        Hello! I'm your StarZopp Assistant. Ask me about career opportunities, networking, or the platform.
+      </div>
+    </div>
+
+    <div class="typing" id="typing-indicator">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div id="input-area">
+      <input type="text" id="question" placeholder="Type your question here..." autocomplete="off">
+      <button id="send-btn" onclick="sendQuestion()">Send</button>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeFeedbackModal()">&times;</span>
+        <h2>Help us improve</h2>
+        <p>Why was this response not helpful?</p>
+        <textarea id="feedback-reason"
+          placeholder="e.g., The answer was inaccurate, generic, or off-topic..."></textarea>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeFeedbackModal()">Cancel</button>
+          <button id="submit-feedback" onclick="submitFeedback()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-container");
+    const inputBox = document.getElementById("question");
+    const sendBtn = document.getElementById("send-btn");
+    const typingIndicator = document.getElementById("typing-indicator");
+
+    // Allow Enter key to send
+    inputBox.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendQuestion();
+      }
+    });
+
+    async function sendQuestion() {
+      const question = inputBox.value.trim();
+      if (!question) return;
+
+      // Disable input while processing
+      inputBox.value = "";
+      inputBox.disabled = true;
+      sendBtn.disabled = true;
+
+      // Add User Message
+      appendMessage("You", question, "user-message");
+
+      // Show typing indicator
+      showTyping(true);
+      scrollToBottom();
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question })
+        });
+
+        // Hide typing indicator once response starts
+        showTyping(false);
+
+        if (!response.ok) {
+          appendMessage("System", `Server error: ${response.status}`, "message error-message");
+          resetInput();
+          return;
+        }
+
+        // Create Bot Message Container
+        const botMessageDiv = document.createElement("div");
+        botMessageDiv.className = "message bot-message";
+
+        const botName = document.createElement("span");
+        botName.className = "bot-name";
+        botName.innerText = "StarZopp AI";
+        botMessageDiv.appendChild(botName);
+
+        const contentSpan = document.createElement("span");
+        botMessageDiv.appendChild(contentSpan);
+
+        // Add Feedback Buttons
+        const feedbackDiv = createFeedbackButtons(question, contentSpan);
+        botMessageDiv.appendChild(feedbackDiv);
+
+        chatBox.appendChild(botMessageDiv);
+
+        // Stream Reading
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          contentSpan.innerText += chunk;
+          scrollToBottom();
+        }
+
+      } catch (error) {
+        showTyping(false);
+        console.error("Fetch Error:", error);
+        appendMessage("System", "Connection failed. Please ensure the backend is running on port 8000.", "message error-message");
+      } finally {
+        resetInput();
+      }
+    }
+
+    function appendMessage(sender, text, className) {
+      const div = document.createElement("div");
+      div.className = `message ${className}`;
+      if (sender === "You") {
+        div.innerText = text;
+      } else {
+        div.innerHTML = `<span class="bot-name">${sender}</span><span class="content">${text}</span>`;
+        // Only add feedback buttons for actual Bot messages, not System errors
+        if (sender !== "System") {
+          // Note: For generic use, we might not have the original question easily available here.
+          // If we use appendMessage for Bot, we should pass the question.
+          // But currently sendQuestion handles Bot messages manually.
+          // So this might just be for future proofing or explicit calls.
+          div.appendChild(createFeedbackButtons("", div.querySelector(".content")));
+        }
+      }
+      chatBox.appendChild(div);
+      scrollToBottom();
+    }
+
+    let currentFeedbackContext = null; // Stores { question, answerElement } for the modal
+
+    function createFeedbackButtons(questionText, answerElement) {
+      const container = document.createElement("div");
+      container.className = "feedback-container";
+
+      // Thumbs Up (Right/Up)
+      const upBtn = document.createElement("button");
+      upBtn.className = "feedback-btn";
+      upBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23,10C23,8.89 22.1,8 21,8H14.68L15.64,3.43C15.66,3.33 15.67,3.22 15.67,3.11C15.67,2.7 15.5,2.32 15.23,2.05L14.17,1L7.59,7.59C7.22,7.95 7,8.45 7,9V19A2,2 0 0,0 9,21H18C18.83,21 19.54,20.5 19.84,19.78L22.86,12.73C22.95,12.5 23,12.26 23,12V10M1,21H5V9H1V21Z"></path></svg>`;
+      upBtn.onclick = function () {
+        console.log("Thumbs Up clicked");
+        upBtn.style.color = "#4ade80"; // Green
+
+        // Disable buttons to prevent double submission
+        upBtn.disabled = true;
+
+        // Send success feedback
+        const answerText = answerElement ? answerElement.innerText : "";
+        sendFeedbackAPI(questionText, answerText, "success");
+      };
+
+      // Thumbs Down
+      const downBtn = document.createElement("button");
+      downBtn.className = "feedback-btn";
+      downBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19,15H23V3H19M15,3H6C5.17,3 4.46,3.5 4.16,4.22L1.14,11.27C1.05,11.5 1,11.74 1,12V14A2,2 0 0,0 3,16H9.31L8.36,20.57C8.34,20.67 8.33,20.77 8.33,20.88C8.33,21.3 8.5,21.67 8.77,21.94L9.83,23L16.41,16.41C16.78,16.05 17,15.55 17,15V5C17,3.89 16.1,3 15,3Z"></path></svg>`;
+      downBtn.onclick = function () {
+        console.log("Thumbs Down clicked");
+        downBtn.style.color = "#ef4444"; // Red
+
+        // Open Modal
+        openFeedbackModal(questionText, answerElement);
+      };
+
+      container.appendChild(upBtn);
+      container.appendChild(downBtn);
+      return container;
+    }
+
+    // Modal Logic
+    const modal = document.getElementById("feedback-modal");
+    const reasonInput = document.getElementById("feedback-reason");
+
+    function openFeedbackModal(question, answerElement) {
+      currentFeedbackContext = { question, answerElement };
+      reasonInput.value = ""; // Clear previous input
+      modal.style.display = "block";
+      reasonInput.focus();
+    }
+
+    function closeFeedbackModal() {
+      modal.style.display = "none";
+      currentFeedbackContext = null;
+    }
+
+    function submitFeedback() {
+      if (!currentFeedbackContext) return;
+
+      const reason = reasonInput.value.trim();
+      if (!reason) {
+        alert("Please provide a reason.");
+        return;
+      }
+
+      const answerText = currentFeedbackContext.answerElement ? currentFeedbackContext.answerElement.innerText : "";
+
+      sendFeedbackAPI(currentFeedbackContext.question, answerText, "failure", reason);
+
+      closeFeedbackModal();
+      alert("Thank you for your feedback!");
+    }
+
+    async function sendFeedbackAPI(question, answer, rating, reason = null) {
+      try {
+        await fetch("http://127.0.0.1:8000/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: question,
+            answer: answer,
+            rating: rating,
+            reason: reason
+          })
+        });
+        console.log("Feedback sent successfully");
+      } catch (error) {
+        console.error("Error sending feedback:", error);
+      }
+    }
+
+    // Close modal if user clicks outside
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        closeFeedbackModal();
+      }
+    }
+
+    function showTyping(show) {
+      if (show) {
+        typingIndicator.style.display = "flex";
+        chatBox.appendChild(typingIndicator); // Move to bottom
+      } else {
+        typingIndicator.style.display = "none";
+      }
+    }
+
+    function scrollToBottom() {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function resetInput() {
+      inputBox.disabled = false;
+      sendBtn.disabled = false;
+      inputBox.focus();
+    }
+  </script>
+
+</body>
+
+</html>

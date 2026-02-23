@@ -1,0 +1,4 @@
+StarZopp is a professional networking platform for creative industries such as Film, Music and Fashion.
+Users can create Talent, Business and Union accounts.
+The platform allows job posting, collaboration posting and event creation.
+StarZopp provides AI powered job matching based on skills and experience.

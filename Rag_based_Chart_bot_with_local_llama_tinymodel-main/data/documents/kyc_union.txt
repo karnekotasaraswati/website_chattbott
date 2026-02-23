@@ -1,0 +1,3 @@
+StarZopp provides KYC verification using ID submission and live selfie verification.
+Verified users receive a badge and increased visibility.
+Union accounts can manage memberships, create announcements, handle complaints, and organize events.
