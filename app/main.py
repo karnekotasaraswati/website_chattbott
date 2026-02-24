@@ -30,7 +30,7 @@ load_dotenv()
 
 app = FastAPI()
 
-# Enable CORS
+# ✅ Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,25 +39,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register API router
+# ✅ Register API router
 app.include_router(router)
 
-@app.on_event("startup")
+
+# ✅ SAFE STARTUP EVENT
 @app.on_event("startup")
 async def startup_event():
-    print("Application Startup: Connecting to Services...")
+    print("🚀 Application Startup: Connecting to Services...")
+
     try:
         from app.services.retrieval_service import load_index
         load_index()
-        print("Startup Complete.")
+        print("✅ FAISS index loaded")
     except Exception as e:
-        print(f"ERROR during startup: {e}")
-        print("Continuing server startup, but RAG may not work.")
+        print("❌ ERROR during startup:", e)
+        print("⚠️ Server will continue without RAG")
 
-# Serve frontend index.html
+
+# ✅ Frontend path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_PATH = os.path.join(BASE_DIR, "..", "index.html")
 
+
 @app.get("/")
 def serve_frontend():
-    return FileResponse(FRONTEND_PATH)
+    if os.path.exists(FRONTEND_PATH):
+        return FileResponse(FRONTEND_PATH)
+    return {"message": "API is running 🚀"}
