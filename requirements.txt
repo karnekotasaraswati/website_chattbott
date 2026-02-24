@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-dotenv
+faiss-cpu
+sentence-transformers
+supabase
+httpx
+pydantic
+PyPDF2
+requests
+python-multipart
