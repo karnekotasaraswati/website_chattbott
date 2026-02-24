@@ -1,4 +1,0 @@
-StarZopp supports three account types:
-Talent Accounts for creative professionals to showcase portfolios, apply for jobs, post collaborations and events.
-Business Accounts for companies to post jobs, manage hiring, and access talent pools.
-Union Accounts for professional organizations to manage members, events, campaigns, and complaints.

@@ -1,2 +1,0 @@
-{"event": "user_feedback", "question": "hello", "answer": "Hello! I am StarZopp AI. How can I help you with your career or job search today?", "rating": "success", "reason": null, "timestamp": "2026-02-17T16:01:23.847690"}
-{"event": "user_feedback", "question": "hello", "answer": "Hello! I am StarZopp AI. How can I help you with your career or job search today?", "rating": "failure", "reason": "I need a practical solution for connecting Supabase profile data to the chatbot response.", "timestamp": "2026-02-17T17:17:11.270634"}

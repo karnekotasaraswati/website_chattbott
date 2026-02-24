@@ -1,4 +1,0 @@
-Users can post collaboration opportunities for Film, Music, and Fashion projects.
-They can define roles, budgets, and payment types.
-Events include screenings, performances, showcases, workshops, and meetings.
-Users can set ticket prices and track attendees.

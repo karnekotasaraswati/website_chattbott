@@ -1,4 +1,0 @@
-StarZopp provides AI assistants for different account types.
-Talent AI helps create posts and find opportunities.
-Business AI helps create job posts, analyze hiring data, and recruit talent.
-Union AI helps create events, manage members, and report issues.

@@ -1,3 +1,0 @@
-Talent users can browse jobs sorted by match percentage.
-Job matching is based on skills, profession, experience, age, and location.
-Business users can create job posts, manage applicants, set salary ranges, and control job visibility.
